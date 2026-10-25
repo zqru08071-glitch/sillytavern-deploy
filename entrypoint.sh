@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-cd /home/node/app
+cd /app
 
 PORT="${PORT:-10000}"
 ST_USER="${ST_USER:-tavern}"
@@ -27,6 +27,4 @@ extensions:
     autoDownload: false
 EOF
 
-chown -R node:node config data backups plugins public/scripts/extensions/third-party 2>/dev/null || true
-
-exec node --max-old-space-size=384 server.js --listen --port "${PORT}"
+exec node --max-old-space-size=400 server.js --listen --port "${PORT}"
