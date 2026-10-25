@@ -66,7 +66,10 @@ if (!keys.some(k => k === "user:" + handle)) {
 # 前端拿到不到设置就一直在“Error getting settings”状态，界面初始化不了
 DATA_DIR="data/${ST_USER}"
 mkdir -p "$DATA_DIR"
-if [ ! -s "$DATA_DIR/settings.json" ] && [ -s "default/content/settings.json" ]; then
+if [ ! -s "$DATA_DIR/settings.json" ] && [ -s /usr/local/share/silverseed-settings.json ]; then
+  cp /usr/local/share/silverseed-settings.json "$DATA_DIR/settings.json"
+  echo "seeded $DATA_DIR/settings.json"
+elif [ ! -s "$DATA_DIR/settings.json" ] && [ -s "default/content/settings.json" ]; then
   cp "default/content/settings.json" "$DATA_DIR/settings.json"
   echo "seeded $DATA_DIR/settings.json"
 fi
