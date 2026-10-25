@@ -3,8 +3,6 @@ set -e
 cd /app
 
 PORT="${PORT:-10000}"
-ST_USER="${ST_USER:-tavern}"
-ST_PASS="${ST_PASS:-tavern}"
 
 mkdir -p data backups plugins public/scripts/extensions/third-party
 
@@ -21,14 +19,13 @@ port: ${PORT}
 browserLaunch:
   enabled: false
 whitelistMode: false
-basicAuthMode: true
-basicAuthUser:
-  username: "${ST_USER}"
-  password: "${ST_PASS}"
-enableUserAccounts: false
+basicAuthMode: false
+enableUserAccounts: true
+enableDiscreetLogin: false
 securityOverride: true
 skipContentCheck: true
 enableDownloadableTokenizers: false
+sessionTimeout: -1
 extensions:
   enabled: true
   autoUpdate: false
@@ -36,5 +33,5 @@ extensions:
     autoDownload: false
 EOF
 
-echo "Starting SillyTavern on port ${PORT}"
+echo "Starting SillyTavern on port ${PORT} (accounts login)"
 exec node --max-old-space-size=400 server.js --listen --port "${PORT}"
