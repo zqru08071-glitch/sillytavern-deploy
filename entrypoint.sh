@@ -74,10 +74,10 @@ elif [ ! -s "$DATA_DIR/settings.json" ] && [ -s "default/content/settings.json" 
   echo "seeded $DATA_DIR/settings.json"
 fi
 
-# 把冥王星快捷回复集种进账号，开机就能直接用
-mkdir -p "$DATA_DIR/quickreplies"
-if [ -s /usr/local/share/silverseed-qr.json ] && [ ! -s "$DATA_DIR/quickreplies/🪐冥王星QR.json" ]; then
-  cp /usr/local/share/silverseed-qr.json "$DATA_DIR/quickreplies/🪐冥王星QR.json"
+# 把冥王星快捷回复集种进账号（注意目录名是 QuickReplies，大写），开机就能直接用
+mkdir -p "$DATA_DIR/QuickReplies"
+if [ -s /usr/local/share/silverseed-qr.json ] && [ ! -s "$DATA_DIR/QuickReplies/🪐冥王星QR.json" ]; then
+  cp /usr/local/share/silverseed-qr.json "$DATA_DIR/QuickReplies/🪐冥王星QR.json"
   echo "seeded pluto quick reply set"
 fi
 
