@@ -1,31 +1,40 @@
 #!/bin/sh
 set -e
-cd /home/node/app
+cd /app
 
-# Render 用 PORT 环境变量指定端口
 PORT="${PORT:-10000}"
 ST_USER="${ST_USER:-tavern}"
 ST_PASS="${ST_PASS:-tavern}"
 
-mkdir -p config data backups plugins public/scripts/extensions/third-party
+mkdir -p data backups plugins public/scripts/extensions/third-party
 
-if [ ! -s config/config.yaml ]; then
-  cat > config/config.yaml <<EOF
+cat > config.yaml <<EOF
 dataRoot: ./data
 listen: true
+listenAddress:
+  ipv4: 0.0.0.0
+  ipv6: '[::]'
+protocol:
+  ipv4: true
+  ipv6: false
 port: ${PORT}
+browserLaunch:
+  enabled: false
 whitelistMode: false
 basicAuthMode: true
 basicAuthUser:
   username: "${ST_USER}"
   password: "${ST_PASS}"
-enableCorsProxy: false
 enableUserAccounts: false
 securityOverride: true
+skipContentCheck: true
+enableDownloadableTokenizers: false
+extensions:
+  enabled: true
+  autoUpdate: false
+  models:
+    autoDownload: false
 EOF
-fi
 
-npm run init || true
-chown -R node:node config data backups plugins public/scripts/extensions/third-party 2>/dev/null || true
-
-exec node server.js --listen --port "${PORT}"
+echo "Starting SillyTavern on port ${PORT}"
+exec node --max-old-space-size=400 server.js --listen --port "${PORT}"
