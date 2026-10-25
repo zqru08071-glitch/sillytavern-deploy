@@ -36,6 +36,7 @@ RUN sed -i "s#return res.sendFile(outputFile, { root: outputPath });#return res.
 RUN mkdir -p /app/config /app/data /app/backups /app/plugins /app/public/scripts/extensions/third-party
 
 COPY entrypoint.sh /usr/local/bin/st-entrypoint.sh
+COPY seed-qr.json /usr/local/share/silverseed-qr.json
 RUN chmod +x /usr/local/bin/st-entrypoint.sh
 
 ENV PORT=10000
