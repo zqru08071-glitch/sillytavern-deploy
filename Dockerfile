@@ -37,6 +37,7 @@ RUN mkdir -p /app/config /app/data /app/backups /app/plugins /app/public/scripts
 
 COPY entrypoint.sh /usr/local/bin/st-entrypoint.sh
 COPY seed-qr.json /usr/local/share/silverseed-qr.json
+COPY seed-settings.json /usr/local/share/silverseed-settings.json
 RUN chmod +x /usr/local/bin/st-entrypoint.sh
 
 ENV PORT=10000
