@@ -29,6 +29,10 @@ RUN LIB="$(find /app/dist -name lib.js -type f | head -1)" \
 RUN sed -i "s#await webpackMiddleware.runWebpackCompiler({ pruneCache: true });#console.log('Using prebuilt frontend libraries');#" src/server-main.js \
  && grep -n "prebuilt frontend" src/server-main.js
 
+# 关键修复 2：/lib.js 会被 webpack 中间件先截住，去不存在的 dist 产物里找 → 404 白屏。
+# 改成直接吐 public/lib.js
+RUN sed -i "s#return res.sendFile(outputFile, { root: outputPath });#return res.sendFile('lib.js', { root: path.join(process.cwd(), 'public') });#" src/middleware/webpack-serve.js  && grep -n "public" src/middleware/webpack-serve.js
+
 RUN mkdir -p /app/config /app/data /app/backups /app/plugins /app/public/scripts/extensions/third-party
 
 COPY entrypoint.sh /usr/local/bin/st-entrypoint.sh
