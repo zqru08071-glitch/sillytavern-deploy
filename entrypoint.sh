@@ -8,6 +8,9 @@ ST_PASS="${ST_PASS:-tavern}"
 
 mkdir -p data backups plugins public/scripts/extensions/third-party
 
+# 跳过运行期 webpack 编译，改用构建期预编译的 lib.js
+node patch-lib.cjs
+
 cat > config.yaml <<EOF
 dataRoot: ./data
 listen: true
@@ -37,4 +40,4 @@ extensions:
 EOF
 
 echo "Starting SillyTavern on port ${PORT}"
-exec node --max-old-space-size=400 server.js --listen --port "${PORT}"
+exec node --max-old-space-size=460 server.js --listen --port "${PORT}"
