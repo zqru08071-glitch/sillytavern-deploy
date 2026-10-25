@@ -62,5 +62,14 @@ if (!keys.some(k => k === "user:" + handle)) {
 }
 '
 
+# 免费实例没有持久盘：给账号种一份官方默认 settings.json，否则 /api/settings/get 返回 500，
+# 前端拿到不到设置就一直在“Error getting settings”状态，界面初始化不了
+DATA_DIR="data/${ST_USER}"
+mkdir -p "$DATA_DIR"
+if [ ! -s "$DATA_DIR/settings.json" ] && [ -s "default/content/settings.json" ]; then
+  cp "default/content/settings.json" "$DATA_DIR/settings.json"
+  echo "seeded $DATA_DIR/settings.json"
+fi
+
 echo "Starting SillyTavern on port ${PORT} (account login)"
 exec node --max-old-space-size=400 server.js --listen --port "${PORT}"
