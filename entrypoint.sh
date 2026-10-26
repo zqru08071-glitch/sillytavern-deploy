@@ -150,7 +150,7 @@ try {
   const s = JSON.parse(fs.readFileSync(file, "utf8"));
   s.oai_settings = s.oai_settings || {};
   s.oai_settings.chat_completion_source = "custom";
-  s.oai_settings.custom_url = process.env.ST_CUSTOM_URL || "https://sub2api.mmkjy.top/v1/chat/completions";
+  s.oai_settings.custom_url = process.env.ST_CUSTOM_URL || "https://sub2api.mmkjy.top/v1";
   s.oai_settings.custom_model = process.env.ST_CUSTOM_MODEL || "gpt-5.6-terra";
   s.oai_settings.custom_prompt_post_processing = "merge";
   s.oai_settings.bind_preset_to_connection = false;
