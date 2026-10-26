@@ -104,10 +104,21 @@ if [ -s /usr/local/share/silverseed-preset.json ] && [ ! -s "$DATA_DIR/OpenAI Se
   echo "seeded pluto preset"
 fi
 
-# 免费实例无持久盘：把「少女祷告」主题种进账号并设为当前主题，重启后依然在
-if [ -s /usr/local/share/silverseed-theme.json ]; then
+# 免费实例无持久盘：把主题种进账号，重启后依然在；
+# 只有用户还没选过主题（或还是出厂 Dark Lite）时，才把 seed-theme.json 设为当前主题
+if ls /usr/local/share/silverseed-theme*.json >/dev/null 2>&1; then
   mkdir -p "$DATA_DIR/themes"
-  cp /usr/local/share/silverseed-theme.json "$DATA_DIR/themes/♡♱ 少女祷告 ♱♡.json"
+  cp /usr/local/share/silverseed-theme*.json "$DATA_DIR/themes/" 2>/dev/null || true
+  for f in /usr/local/share/silverseed-theme*.json; do
+    NAME="$(basename "$f" .json)"; NAME="${NAME#silverseed-theme}"
+    case "$NAME" in
+      -x-default) TARGET="【SAYA】X-default" ;;
+      -x-lightsout) TARGET="【SAYA】X-lights out" ;;
+      -x-pink) TARGET="【SAYA】X-pink" ;;
+      *) TARGET="♡♱ 少女祷告 ♱♡" ;;
+    esac
+    [ -s "$DATA_DIR/themes/$TARGET.json" ] || cp "$f" "$DATA_DIR/themes/$TARGET.json"
+  done
   DATA_DIR="$DATA_DIR" node --input-type=module -e '
 import fs from "node:fs";
 const dir = process.env.DATA_DIR;
