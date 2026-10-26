@@ -306,17 +306,16 @@ if [ -n "${ST_BACKUP_REPO:-}" ] && [ -n "${ST_BACKUP_TOKEN:-}" ]; then
         mkdir -p "$_t/r/data"
         rm -rf "$_t/r/data/$ST_USER"
         cp -a "/app/data/$ST_USER" "$_t/r/data/$ST_USER" 2>/dev/null || true
-        find "$_t/r/data" -name '*.tmp' -delete 2>/dev/null || true
+        find "$_t/r/data" \( -name '*.tmp' -o -name 'node_modules' \) -prune -exec rm -rf {} + 2>/dev/null || true
         cd "$_t/r" || continue
         git config user.email backup@local >/dev/null 2>&1
         git config user.name auto-backup >/dev/null 2>&1
+        # 单快照：每次都用一个孤立提交 force push，仓库里只留最新一份，不会越滚越大
+        git checkout -q --orphan snapshot >/dev/null 2>&1
         git add -A >/dev/null 2>&1
-        if ! git diff --cached --quiet >/dev/null 2>&1; then
-          git commit -q -m "auto backup $(date -u +%FT%TZ)" >/dev/null 2>&1 \
-            && git push -q origin HEAD:main >/dev/null 2>&1 \
-            && echo "backup pushed $(date -u +%FT%TZ)"
+        if git commit -q -m "snapshot $(date -u +%FT%TZ)" >/dev/null 2>&1; then
+          git push -q -f origin snapshot:main >/dev/null 2>&1 && echo "backup pushed $(date -u +%FT%TZ)"
         fi
-      fi
       cd /app
       rm -rf "$_t"
     done
