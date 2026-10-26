@@ -145,5 +145,33 @@ try {
 '
 fi
 
+# 免费实例无持久盘：把美化正则（睡莲）合并进 settings.json，重启/重部署后还在
+if [ -s /usr/local/share/silverseed-regex.json ]; then
+  DATA_DIR="$DATA_DIR" node --input-type=module -e '
+import fs from "node:fs";
+const dir = process.env.DATA_DIR;
+try {
+  const seeds = JSON.parse(fs.readFileSync("/usr/local/share/silverseed-regex.json", "utf8"));
+  const file = `${dir}/settings.json`;
+  if (!fs.existsSync(file)) process.exit(0);
+  const s = JSON.parse(fs.readFileSync(file, "utf8"));
+  s.extension_settings = s.extension_settings || {};
+  const cur = Array.isArray(s.extension_settings.regex) ? s.extension_settings.regex : [];
+  const have = new Set(cur.map(x => x.scriptName));
+  let added = 0;
+  for (const seed of seeds) {
+    if (names.has(seed.scriptName)) continue;
+    cur.push(seed);
+    added++;
+  }
+  s.extension_settings.regex = cur;
+  fs.writeFileSync(file, JSON.stringify(s, null, 4), "utf8");
+  console.log("regex seeded:", added);
+} catch (e) {
+  console.error("regex seed skipped:", e.message);
+}
+'
+fi
+
 echo "Starting SillyTavern on port ${PORT} (account login)"
 exec node --max-old-space-size="${NODE_HEAP:-400}" server.js --listen --port "${PORT}"
