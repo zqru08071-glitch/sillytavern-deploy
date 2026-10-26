@@ -23,6 +23,12 @@ link_dir() {
 link_dir /app/data/third-party-extensions public/scripts/extensions/third-party
 link_dir /app/data/plugins plugins
 link_dir /app/data/backups backups
+# 免费实例无持久盘：每次启动把镜像里预置的「酒馆助手」补回 third-party
+if [ ! -d public/scripts/extensions/third-party/JS-Slash-Runner ] && [ -d /usr/local/share/JS-Slash-Runner ]; then
+  mkdir -p public/scripts/extensions/third-party
+  cp -a /usr/local/share/JS-Slash-Runner public/scripts/extensions/third-party/JS-Slash-Runner
+  echo "seeded JS-Slash-Runner extension"
+fi
 
 # 兜底：如果镜像里的 public/lib.js 丢了，就从 dist 里的编译产物补一份（/lib.js 404 会让整个前端白屏）
 if [ ! -s public/lib.js ]; then
