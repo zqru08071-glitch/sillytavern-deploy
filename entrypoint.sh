@@ -9,6 +9,21 @@ PRESET_NAME="冥王星预设_Ver2.0"
 
 mkdir -p data backups plugins public/scripts/extensions/third-party
 
+# 持久盘适配：付费实例把磁盘挂到 /app/data，这里把第三方扩展/插件/备份也放进去，
+# 这样重部署后「酒馆助手」这类扩展、插件和备份都不会丢。没挂盘时等同普通目录，行为不变。
+link_dir() {
+  src="$1"; dst="$2"
+  mkdir -p "$src"
+  if [ -d "$dst" ] && [ ! -L "$dst" ]; then
+    cp -a "$dst/." "$src/" 2>/dev/null || true
+    rm -rf "$dst"
+  fi
+  [ -L "$dst" ] || [ -e "$dst" ] || ln -s "$src" "$dst"
+}
+link_dir /app/data/third-party-extensions public/scripts/extensions/third-party
+link_dir /app/data/plugins plugins
+link_dir /app/data/backups backups
+
 # 兜底：如果镜像里的 public/lib.js 丢了，就从 dist 里的编译产物补一份（/lib.js 404 会让整个前端白屏）
 if [ ! -s public/lib.js ]; then
   LIB="$(find /app/dist -name lib.js -type f 2>/dev/null | head -1 || true)"
