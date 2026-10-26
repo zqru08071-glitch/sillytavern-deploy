@@ -1,0 +1,29 @@
+{
+    "name": "冥王星酒馆",
+    "short_name": "冥王星",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "theme_color": "#140b24",
+    "background_color": "#06050c",
+    "icons": [
+        {
+            "src": "img/icons/app-icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "img/icons/app-icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "img/icons/app-icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
