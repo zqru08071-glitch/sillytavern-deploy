@@ -51,6 +51,7 @@ COPY seed-theme-x-lightsout.json /usr/local/share/silverseed-theme-x-lightsout.j
 COPY seed-theme-x-pink.json /usr/local/share/silverseed-theme-x-pink.json
 RUN chmod +x /usr/local/bin/st-entrypoint.sh
 
+# API Key 从 Render 环境变量读取（不要写进镜像）
 ENV PORT=10000
 ENV NODE_OPTIONS=--max-old-space-size=400
 EXPOSE 10000
