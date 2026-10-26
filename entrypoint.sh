@@ -238,9 +238,32 @@ try {
     cur.push(seed);
     added++;
   }
-  s.extension_settings.regex = cur;
+  // 睡莲是默认美化：其它套装（猫猫/噬爱/可爱朋友/杏花/小艾琳…）一律关掉，
+  // 否则它们会先把 <Slate>/<thinking>/<Snapshot> 吃掉，睡莲的状态栏和思维链就永远不生效
+  const others = /^(美化｜|猫猫|噬爱|CF-|杏花|小艾琳|SP美化)/;
+  let off = 0;
+  for (const r of cur) {
+    if (r.scriptName.startsWith("睡莲-")) {
+      if (r.disabled) { r.disabled = false; }
+    } else if (others.test(r.scriptName) && !r.disabled) {
+      r.disabled = true;
+      off++;
+    }
+  }
+  // 睡莲挪到最后，保证在别家规则之后执行
+  s.extension_settings.regex = [
+    ...cur.filter(r => !r.scriptName.startsWith("睡莲-")),
+    ...cur.filter(r => r.scriptName.startsWith("睡莲-")),
+  ];
+  // 底部打包要靠酒馆助手的代码折叠渲染成卡片：代码折叠 = 全部
+  s.extension_settings.tavern_helper = s.extension_settings.tavern_helper || {};
+  s.extension_settings.tavern_helper.render = Object.assign(
+    {},
+    s.extension_settings.tavern_helper.render,
+    { enabled: true, collapse_code_block: "all" },
+  );
   fs.writeFileSync(file, JSON.stringify(s, null, 4), "utf8");
-  console.log("regex seeded:", added);
+  console.log("regex seeded:", added, "| other beautify sets disabled:", off);
 } catch (e) {
   console.error("regex seed skipped:", e.message);
 }
