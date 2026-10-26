@@ -160,7 +160,7 @@ try {
   const have = new Set(cur.map(x => x.scriptName));
   let added = 0;
   for (const seed of seeds) {
-    if (names.has(seed.scriptName)) continue;
+    if (have.has(seed.scriptName)) continue;
     cur.push(seed);
     added++;
   }
