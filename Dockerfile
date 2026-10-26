@@ -39,6 +39,7 @@ COPY entrypoint.sh /usr/local/bin/st-entrypoint.sh
 COPY seed-qr.json /usr/local/share/silverseed-qr.json
 COPY seed-settings.json /usr/local/share/silverseed-settings.json
 COPY seed-preset.json /usr/local/share/silverseed-preset.json
+COPY seed-regex-shuilian.json /usr/local/share/silverseed-regex.json
 COPY seed-theme.json /usr/local/share/silverseed-theme.json
 COPY seed-theme-x-default.json /usr/local/share/silverseed-theme-x-default.json
 COPY seed-theme-x-lightsout.json /usr/local/share/silverseed-theme-x-lightsout.json
