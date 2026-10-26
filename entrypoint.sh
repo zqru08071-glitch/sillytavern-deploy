@@ -108,7 +108,7 @@ fi
 # 只有用户还没选过主题（或还是出厂 Dark Lite）时，才把 seed-theme.json 设为当前主题
 if ls /usr/local/share/silverseed-theme*.json >/dev/null 2>&1; then
   mkdir -p "$DATA_DIR/themes"
-  cp /usr/local/share/silverseed-theme*.json "$DATA_DIR/themes/" 2>/dev/null || true
+  rm -f "$DATA_DIR/themes/silverseed-theme"*.json
   for f in /usr/local/share/silverseed-theme*.json; do
     NAME="$(basename "$f" .json)"; NAME="${NAME#silverseed-theme}"
     case "$NAME" in
@@ -123,7 +123,7 @@ if ls /usr/local/share/silverseed-theme*.json >/dev/null 2>&1; then
 import fs from "node:fs";
 const dir = process.env.DATA_DIR;
 try {
-  const theme = JSON.parse(fs.readFileSync("/usr/local/share/silverseed-theme.json", "utf8"));
+  const theme = JSON.parse(fs.readFileSync("/usr/local/share/silverseed-theme-x-default.json", "utf8"));
   const file = `${dir}/settings.json`;
   if (fs.existsSync(file)) {
     const s = JSON.parse(fs.readFileSync(file, "utf8"));
