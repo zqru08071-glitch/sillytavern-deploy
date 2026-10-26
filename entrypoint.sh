@@ -9,6 +9,29 @@ PRESET_NAME="冥王星预设_Ver2.0"
 
 mkdir -p data backups plugins public/scripts/extensions/third-party
 
+# ---------------------------------------------------------------
+# Render 免费实例没有持久盘：容器重启/重部署会把 /app/data 清空。
+# 解决：整个账号目录定时备份到私有 GitHub 仓库，每次开机先拉回来。
+# 环境变量：ST_BACKUP_REPO=<user>/<repo>  ST_BACKUP_TOKEN=<token>
+# ---------------------------------------------------------------
+backup_repo_url() {
+  echo "https://x-access-token:${ST_BACKUP_TOKEN}@github.com/${ST_BACKUP_REPO}.git"
+}
+
+if [ -n "${ST_BACKUP_REPO:-}" ] && [ -n "${ST_BACKUP_TOKEN:-}" ]; then
+  if [ ! -s "/app/data/$ST_USER/settings.json" ] || [ -z "$(ls -A "/app/data/$ST_USER/characters" 2>/dev/null)" ]; then
+    _t="$(mktemp -d)"
+    if git clone --depth 1 "$(backup_repo_url)" "$_t/r" >/dev/null 2>&1 && [ -d "$_t/r/data/$ST_USER" ]; then
+      mkdir -p /app/data
+      cp -a "$_t/r/data/." /app/data/
+      echo "restored data from ${ST_BACKUP_REPO}"
+    else
+      echo "no usable backup, starting fresh"
+    fi
+    rm -rf "$_t"
+  fi
+fi
+
 # 持久盘适配：付费实例把磁盘挂到 /app/data，这里把第三方扩展/插件/备份也放进去，
 # 这样重部署后「酒馆助手」这类扩展、插件和备份都不会丢。没挂盘时等同普通目录，行为不变。
 link_dir() {
@@ -268,6 +291,37 @@ try {
   console.error("regex seed skipped:", e.message);
 }
 '
+fi
+
+# ---------------------------------------------------------------
+# 后台定时把账号目录推回私有仓库（默认 5 分钟一次），免费实例被回收后
+# 重启就能恢复到最近一次备份。
+# ---------------------------------------------------------------
+if [ -n "${ST_BACKUP_REPO:-}" ] && [ -n "${ST_BACKUP_TOKEN:-}" ]; then
+  (
+    while true; do
+      sleep "${ST_BACKUP_INTERVAL:-300}"
+      _t="$(mktemp -d)"
+      if git clone --depth 1 "$(backup_repo_url)" "$_t/r" >/dev/null 2>&1; then
+        mkdir -p "$_t/r/data"
+        rm -rf "$_t/r/data/$ST_USER"
+        cp -a "/app/data/$ST_USER" "$_t/r/data/$ST_USER" 2>/dev/null || true
+        find "$_t/r/data" -name '*.tmp' -delete 2>/dev/null || true
+        cd "$_t/r" || continue
+        git config user.email backup@local >/dev/null 2>&1
+        git config user.name auto-backup >/dev/null 2>&1
+        git add -A >/dev/null 2>&1
+        if ! git diff --cached --quiet >/dev/null 2>&1; then
+          git commit -q -m "auto backup $(date -u +%FT%TZ)" >/dev/null 2>&1 \
+            && git push -q origin HEAD:main >/dev/null 2>&1 \
+            && echo "backup pushed $(date -u +%FT%TZ)"
+        fi
+      fi
+      cd /app
+      rm -rf "$_t"
+    done
+  ) &
+  echo "auto backup loop started (${ST_BACKUP_INTERVAL:-300}s)"
 fi
 
 echo "Starting SillyTavern on port ${PORT} (account login)"
