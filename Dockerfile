@@ -56,8 +56,12 @@ COPY icons/ /app/public/img/icons/
 COPY icons/favicon.ico /app/public/favicon.ico
 COPY manifest.json /app/public/manifest.json
 COPY fix-icons.js /usr/local/share/fix-icons.js
+COPY asset-version.mjs /usr/local/share/asset-version.mjs
 RUN node /usr/local/share/fix-icons.js \
  && grep -n app-icon /app/public/index.html /app/public/login.html
+
+# 给前端资源引用打上内容指纹 ?v=xxx：配合 nginx 长缓存，内容不变就吃缓存，变了 URL 跟着变
+RUN node /usr/local/share/asset-version.mjs /app/public
 
 # API Key 从 Render 环境变量读取（不要写进镜像）
 ENV PORT=10000

@@ -337,6 +337,11 @@ if [ -n "${ST_BACKUP_REPO:-}" ] && [ -n "${ST_BACKUP_TOKEN:-}" ]; then
   echo "auto backup loop started (${ST_BACKUP_INTERVAL:-120}s, on change)"
 fi
 
+# 静态资源指纹（幂等）：内容变了指纹才变，配合长缓存不会卡旧版
+if [ -f /usr/local/share/asset-version.mjs ]; then
+  node /usr/local/share/asset-version.mjs /app/public || true
+fi
+
 echo "Starting SillyTavern on port ${PORT} (account login)"
 node --max-old-space-size="${NODE_HEAP:-400}" server.js --listen --port "${PORT}" &
 NODE_PID=$!

@@ -19,6 +19,11 @@ for (const file of ['public/index.html', 'public/login.html']) {
         /([ \t]*)(<link[^>]*rel="manifest"[^>]*>)/g,
         (_m, indent, tag) => [tag, ...LINKS.map(l => indent + l)].join('\n'),
     );
+    // 主屏名字/状态栏：iOS 添加主屏用 apple-mobile-web-app-title，缺省会拿 <title>
+    html = html.replace(/<title>[^<]*<\/title>/, '<title>冥王星酒馆</title>');
+    if (!html.includes('apple-mobile-web-app-title')) {
+        html = html.replace(/<\/title>/, '</title>\n    <meta name="apple-mobile-web-app-title" content="冥王星酒馆">\n    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n    <meta name="theme-color" content="#140b24">');
+    }
     fs.writeFileSync(file, html);
     console.log('icons patched:', file);
 }
