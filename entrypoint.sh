@@ -294,37 +294,60 @@ try {
 fi
 
 # ---------------------------------------------------------------
-# 后台定时把账号目录推回私有仓库（默认 5 分钟一次）。免费实例被回收后
-# 重启就能恢复到最近一次备份。每次都是孤立提交 force push，仓库只留最新快照。
+# 免费实例没有持久盘：账号目录定时备份到私有 GitHub 仓库，
+# 每次都是孤立提交 force push，仓库里只留最新一份快照，不会越滚越大。
+# 只有 data 有变化时才推；实例被回收（收到 TERM）前也会抢推一次。
+# 环境变量：ST_BACKUP_REPO、ST_BACKUP_TOKEN、ST_BACKUP_INTERVAL（秒，默认 120）
 # ---------------------------------------------------------------
+backup_once() {
+  [ -n "${ST_BACKUP_REPO:-}" ] && [ -n "${ST_BACKUP_TOKEN:-}" ] || return 0
+  _t=$(mktemp -d)
+  if git clone --depth 1 "$(backup_repo_url)" "$_t/r" >/dev/null 2>&1; then
+    mkdir -p "$_t/r/data"
+    rm -rf "$_t/r/data/$ST_USER"
+    cp -a "/app/data/$ST_USER" "$_t/r/data/$ST_USER" 2>/dev/null || true
+    rm -rf "$_t/r/data/$ST_USER/node_modules" 2>/dev/null || true
+    find "$_t/r/data" -name '*.tmp' -delete 2>/dev/null || true
+    cd "$_t/r" || { cd /app; rm -rf "$_t"; return 0; }
+    git config user.email backup@local >/dev/null 2>&1
+    git config user.name auto-backup >/dev/null 2>&1
+    git checkout -q --orphan snapshot >/dev/null 2>&1
+    git add -A >/dev/null 2>&1
+    if git commit -q -m "snapshot $(date -u +%FT%TZ)" >/dev/null 2>&1; then
+      if git push -q -f origin snapshot:main >/dev/null 2>&1; then
+        echo "backup pushed $(date -u +%FT%TZ)"
+      fi
+    fi
+  fi
+  cd /app
+  rm -rf "$_t"
+  date +%s > "/app/data/.last_backup"
+}
+
 if [ -n "${ST_BACKUP_REPO:-}" ] && [ -n "${ST_BACKUP_TOKEN:-}" ]; then
+  date +%s > "/app/data/.last_backup"
   (
     while true; do
-      sleep "${ST_BACKUP_INTERVAL:-300}"
-      _t=$(mktemp -d)
-      if git clone --depth 1 "$(backup_repo_url)" "$_t/r" >/dev/null 2>&1; then
-        mkdir -p "$_t/r/data"
-        rm -rf "$_t/r/data/$ST_USER"
-        cp -a "/app/data/$ST_USER" "$_t/r/data/$ST_USER" 2>/dev/null || true
-        find "$_t/r/data" -name '*.tmp' -delete 2>/dev/null || true
-        rm -rf "$_t/r/data/$ST_USER/node_modules" 2>/dev/null || true
-        cd "$_t/r" || continue
-        git config user.email backup@local >/dev/null 2>&1
-        git config user.name auto-backup >/dev/null 2>&1
-        git checkout -q --orphan snapshot >/dev/null 2>&1
-        git add -A >/dev/null 2>&1
-        if git commit -q -m "snapshot $(date -u +%FT%TZ)" >/dev/null 2>&1; then
-          if git push -q -f origin snapshot:main >/dev/null 2>&1; then
-            echo "backup pushed $(date -u +%FT%TZ)"
-          fi
-        fi
+      sleep "${ST_BACKUP_INTERVAL:-120}"
+      if [ -n "$(find "/app/data/$ST_USER" -type f -newer "/app/data/.last_backup" 2>/dev/null | head -1)" ]; then
+        backup_once
       fi
-      cd /app
-      rm -rf "$_t"
     done
   ) &
-  echo "auto backup loop started (${ST_BACKUP_INTERVAL:-300}s)"
+  echo "auto backup loop started (${ST_BACKUP_INTERVAL:-120}s, on change)"
 fi
 
 echo "Starting SillyTavern on port ${PORT} (account login)"
-exec node --max-old-space-size="${NODE_HEAP:-400}" server.js --listen --port "${PORT}"
+node --max-old-space-size="${NODE_HEAP:-400}" server.js --listen --port "${PORT}" &
+NODE_PID=$!
+
+on_term() {
+  echo "shutting down, saving snapshot..."
+  backup_once
+  kill "$NODE_PID" 2>/dev/null || true
+  wait "$NODE_PID" 2>/dev/null || true
+  exit 0
+}
+trap on_term TERM INT
+
+wait "$NODE_PID"
