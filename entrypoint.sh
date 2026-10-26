@@ -104,5 +104,35 @@ if [ -s /usr/local/share/silverseed-preset.json ] && [ ! -s "$DATA_DIR/OpenAI Se
   echo "seeded pluto preset"
 fi
 
+# 免费实例无持久盘：把「少女祷告」主题种进账号并设为当前主题，重启后依然在
+if [ -s /usr/local/share/silverseed-theme.json ]; then
+  mkdir -p "$DATA_DIR/themes"
+  cp /usr/local/share/silverseed-theme.json "$DATA_DIR/themes/♡♱ 少女祷告 ♱♡.json"
+  DATA_DIR="$DATA_DIR" node --input-type=module -e '
+import fs from "node:fs";
+const dir = process.env.DATA_DIR;
+try {
+  const theme = JSON.parse(fs.readFileSync("/usr/local/share/silverseed-theme.json", "utf8"));
+  const file = `${dir}/settings.json`;
+  if (fs.existsSync(file)) {
+    const s = JSON.parse(fs.readFileSync(file, "utf8"));
+    s.power_user = s.power_user || {};
+    if (!s.power_user.theme || s.power_user.theme === "Dark Lite") {
+      s.power_user.theme = theme.name;
+      s.power_user.custom_css = theme.custom_css || "";
+      for (const [k, v] of Object.entries(theme)) {
+        if (["name", "custom_css", "extensions", "tags", "character_version"].includes(k)) continue;
+        if (s.power_user[k] === undefined) s.power_user[k] = v;
+      }
+      fs.writeFileSync(file, JSON.stringify(s, null, 4), "utf8");
+      console.log("theme applied:", theme.name);
+    }
+  }
+} catch (e) {
+  console.error("theme seed skipped:", e.message);
+}
+'
+fi
+
 echo "Starting SillyTavern on port ${PORT} (account login)"
 exec node --max-old-space-size="${NODE_HEAP:-400}" server.js --listen --port "${PORT}"
