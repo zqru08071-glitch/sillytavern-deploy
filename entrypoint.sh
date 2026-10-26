@@ -139,6 +139,31 @@ try {
 }
 '
 
+# 注入了自定义 key 时，把默认对话源设成该 OpenAI 兼容中转，并且不让预设切回 claude
+if [ -n "${ST_CUSTOM_KEY:-}" ]; then
+  DATA_DIR="$DATA_DIR" node --input-type=module -e '
+import fs from "node:fs";
+const dir = process.env.DATA_DIR;
+try {
+  const file = `${dir}/settings.json`;
+  if (!fs.existsSync(file)) process.exit(0);
+  const s = JSON.parse(fs.readFileSync(file, "utf8"));
+  s.oai_settings = s.oai_settings || {};
+  s.oai_settings.chat_completion_source = "custom";
+  s.oai_settings.custom_url = process.env.ST_CUSTOM_URL || "https://sub2api.mmkjy.top/v1/chat/completions";
+  s.oai_settings.custom_model = process.env.ST_CUSTOM_MODEL || "gpt-5.6-terra";
+  s.oai_settings.custom_prompt_post_processing = "merge";
+  s.oai_settings.bind_preset_to_connection = false;
+  s.oai_settings.stream_openai = true;
+  s.main_api = "openai";
+  fs.writeFileSync(file, JSON.stringify(s, null, 4), "utf8");
+  console.log("chat source:", s.oai_settings.custom_url, s.oai_settings.custom_model);
+} catch (e) {
+  console.error("chat source seed skipped:", e.message);
+}
+'
+fi
+
 # 把冥王星快捷回复集种进账号（注意目录名是 QuickReplies，大写），开机就能直接用
 mkdir -p "$DATA_DIR/QuickReplies"
 if [ -s /usr/local/share/silverseed-qr.json ] && [ ! -s "$DATA_DIR/QuickReplies/🪐冥王星QR.json" ]; then
