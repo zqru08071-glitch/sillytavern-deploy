@@ -5,6 +5,7 @@ cd /app
 PORT="${PORT:-10000}"
 ST_USER="${ST_USER:-tavern}"
 ST_PASS="${ST_PASS:-tavern}"
+PRESET_NAME="冥王星预设_Ver2.0"
 
 mkdir -p data backups plugins public/scripts/extensions/third-party
 
@@ -79,6 +80,13 @@ mkdir -p "$DATA_DIR/QuickReplies"
 if [ -s /usr/local/share/silverseed-qr.json ] && [ ! -s "$DATA_DIR/QuickReplies/🪐冥王星QR.json" ]; then
   cp /usr/local/share/silverseed-qr.json "$DATA_DIR/QuickReplies/🪐冥王星QR.json"
   echo "seeded pluto quick reply set"
+fi
+
+# 把冥王星预设（Chat Completion 预设）种进 OpenAI Settings，预设下拉里直接能选
+mkdir -p "$DATA_DIR/OpenAI Settings"
+if [ -s /usr/local/share/silverseed-preset.json ] && [ ! -s "$DATA_DIR/OpenAI Settings/$PRESET_NAME.json" ]; then
+  cp /usr/local/share/silverseed-preset.json "$DATA_DIR/OpenAI Settings/$PRESET_NAME.json"
+  echo "seeded pluto preset"
 fi
 
 echo "Starting SillyTavern on port ${PORT} (account login)"
