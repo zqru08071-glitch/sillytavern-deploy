@@ -96,6 +96,49 @@ elif [ ! -s "$DATA_DIR/settings.json" ] && [ -s "default/content/settings.json" 
   echo "seeded $DATA_DIR/settings.json"
 fi
 
+# 免费实例无持久盘：每次启动从 Render 环境变量把 API Key 写进 secrets.json，
+# 重启/重部署后不用再手填。支持 ST_CLAUDE_KEY / ST_OPENAI_KEY / ST_GEMINI_KEY /
+# ST_DEEPSEEK_KEY / ST_OPENROUTER_KEY / ST_CUSTOM_KEY，以及 ST_REVERSE_PROXY。
+DATA_DIR="$DATA_DIR" node --input-type=module -e '
+import fs from "node:fs";
+import crypto from "node:crypto";
+const dir = process.env.DATA_DIR;
+const map = {
+  api_key_claude: process.env.ST_CLAUDE_KEY,
+  api_key_openai: process.env.ST_OPENAI_KEY,
+  api_key_gemini: process.env.ST_GEMINI_KEY,
+  api_key_deepseek: process.env.ST_DEEPSEEK_KEY,
+  api_key_openrouter: process.env.ST_OPENROUTER_KEY,
+  api_key_custom: process.env.ST_CUSTOM_KEY,
+};
+try {
+  const wanted = Object.entries(map).filter(e => e[1] && String(e[1]).trim());
+  if (wanted.length) {
+    const file = dir + "/secrets.json";
+    let secrets = {};
+    try { secrets = JSON.parse(fs.readFileSync(file, "utf8")); } catch {}
+    secrets._migrated = Array.isArray(secrets._migrated) ? secrets._migrated : [];
+    for (const e of wanted) {
+      secrets[e[0]] = [{ id: crypto.randomUUID(), value: String(e[1]).trim(), label: "Render env", active: true }];
+    }
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(secrets, null, 4), "utf8");
+    console.log("secrets injected:", wanted.map(e => e[0]).join(","));
+  }
+  const proxy = (process.env.ST_REVERSE_PROXY || "").trim();
+  if (proxy) {
+    const file = dir + "/settings.json";
+    const s = JSON.parse(fs.readFileSync(file, "utf8"));
+    s.oai_settings = s.oai_settings || {};
+    s.oai_settings.reverse_proxy = proxy;
+    fs.writeFileSync(file, JSON.stringify(s, null, 4), "utf8");
+    console.log("reverse proxy set:", proxy);
+  }
+} catch (e) {
+  console.error("api key inject skipped:", e.message);
+}
+'
+
 # 把冥王星快捷回复集种进账号（注意目录名是 QuickReplies，大写），开机就能直接用
 mkdir -p "$DATA_DIR/QuickReplies"
 if [ -s /usr/local/share/silverseed-qr.json ] && [ ! -s "$DATA_DIR/QuickReplies/🪐冥王星QR.json" ]; then
