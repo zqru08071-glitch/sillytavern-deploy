@@ -105,4 +105,4 @@ if [ -s /usr/local/share/silverseed-preset.json ] && [ ! -s "$DATA_DIR/OpenAI Se
 fi
 
 echo "Starting SillyTavern on port ${PORT} (account login)"
-exec node --max-old-space-size=400 server.js --listen --port "${PORT}"
+exec node --max-old-space-size="${NODE_HEAP:-400}" server.js --listen --port "${PORT}"
