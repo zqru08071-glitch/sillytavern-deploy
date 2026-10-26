@@ -51,6 +51,13 @@ COPY seed-theme-x-lightsout.json /usr/local/share/silverseed-theme-x-lightsout.j
 COPY seed-theme-x-pink.json /usr/local/share/silverseed-theme-x-pink.json
 RUN chmod +x /usr/local/bin/st-entrypoint.sh
 
+# 自绘的冥王星 App 图标（主屏幕 / PWA）
+COPY icons/ /app/public/img/icons/
+COPY manifest.json /app/public/manifest.json
+RUN sed -i '/rel="apple-touch-icon"/d' /app/public/index.html \
+ && sed -i 's#<link rel="manifest" crossorigin="use-credentials" href="manifest.json">#<link rel="apple-touch-icon" sizes="180x180" href="img/icons/app-icon-180.png" />\n    <link rel="icon" type="image/png" sizes="512x512" href="img/icons/app-icon-512.png" />\n    <link rel="manifest" crossorigin="use-credentials" href="manifest.json?v=2">#' /app/public/index.html \
+ && grep -n app-icon /app/public/index.html
+
 # API Key 从 Render 环境变量读取（不要写进镜像）
 ENV PORT=10000
 ENV NODE_OPTIONS=--max-old-space-size=400
