@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "name": "🪐冥王星QR",
+  "disableSend": false,
+  "placeBeforeInput": false,
+  "injectInput": false,
+  "color": "rgba(0, 0, 0, 0)",
+  "onlyBorderColor": false,
+  "qrList": [
+    {
+      "id": 1,
+      "showLabel": false,
+      "label": "🪐冥王星",
+      "title": "",
+      "message": "/buttons labels=[\"💖助手模式\", \"📦全文总结\", \"🌙隐藏楼层\", \"💫取消隐藏\"] 玩家宝宝的专属控制器 |\n/setvar key=my_choice ||\n\n/if left=my_choice rule=eq right=\"\" {: /abort :} ||\n\n/if left=my_choice rule=eq right=\"💖助手模式\" {: \n  /setinput （CHOIR） | \n  /flushvar my_choice | \n  /abort \n:} ||\n\n/if left=my_choice rule=eq right=\"📦全文总结\" {: \n  /setinput （CHOIR，暂停角色扮演，根据过往的所有记录，按照时间顺序，概括总结此期间发生的剧情记忆。总结内容格式要求如下：\\n# FORMAT:\\n<abstract>\\n ✦ 大总结 ${第几次} ✦ \\n总结范围：${Scene_NO.}～${Scene_NO.}\\n｜(时间段)｜(地点，涉及移动时须注明）\\n（内容：包括时间、地点、人物、事件、影响、剧情伏笔、角色关系与感情变化、重要台词、世界书中未出现过的NPC与场所简介，严谨准确，强调因果关系，禁止无中生有，语言精炼避免赘述。\\n注意：大总结包含至今为止所有上文及之前的总结内容，对较为久远的已完成事件可以轻微精简。）\\n</abstract>\\n） | \n  /flushvar my_choice | \n  /abort \n:} ||\n\n/if left=my_choice rule=eq right=\"🌙隐藏楼层\" {: /setvar key=prompt_text 请输入需要【隐藏】的楼层号：如0-10 :} ||\n\n/if left=my_choice rule=eq right=\"💫取消隐藏\" {: /setvar key=prompt_text 请输入需要【恢复显示】的楼层号：如0-10 :} ||\n\n/input {{getvar::prompt_text}} |\n/setvar key=target_floor {{pipe}} ||\n\n/if left={{getvar::target_floor}} rule=eq right=\"\" {: \n  /echo title=操作取消 severity=warning 已为你取消操作啦！ | \n  /flushvar my_choice | \n  /flushvar target_floor | \n  /flushvar prompt_text | \n  /abort \n:} ||\n\n/if left=my_choice rule=eq right=\"🌙隐藏楼层\" {: \n  /hide {{getvar::target_floor}} | \n  /echo title=系统提示 severity=success 楼层 {{getvar::target_floor}} 已成功隐藏啦！ \n:} ||\n\n/if left=my_choice rule=eq right=\"💫取消隐藏\" {: \n  /unhide {{getvar::target_floor}} | \n  /echo title=系统提示 severity=success 楼层 {{getvar::target_floor}} 已重见天日啦！ \n:} ||\n\n/flushvar my_choice ||\n/flushvar target_floor ||\n/flushvar prompt_text ||",
+      "contextList": [],
+      "preventAutoExecute": true,
+      "isHidden": false,
+      "executeOnStartup": false,
+      "executeOnUser": false,
+      "executeOnAi": false,
+      "executeOnChatChange": false,
+      "executeOnGroupMemberDraft": false,
+      "executeOnNewChat": false,
+      "executeBeforeGeneration": false,
+      "automationId": ""
+    }
+  ],
+  "idIndex": 7
+}
