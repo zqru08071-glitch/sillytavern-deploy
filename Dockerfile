@@ -33,6 +33,11 @@ RUN sed -i "s#await webpackMiddleware.runWebpackCompiler({ pruneCache: true });#
 # 改成直接吐 public/lib.js
 RUN sed -i "s#return res.sendFile(outputFile, { root: outputPath });#return res.sendFile('lib.js', { root: path.join(process.cwd(), 'public') });#" src/middleware/webpack-serve.js  && grep -n "public" src/middleware/webpack-serve.js
 
+# 构建期克隆「酒馆助手」，免费实例重部署后扩展不会丢
+RUN git clone --depth 1 https://github.com/N0VI028/JS-Slash-Runner.git /usr/local/share/JS-Slash-Runner \
+ && rm -rf /usr/local/share/JS-Slash-Runner/.git \
+ && test -f /usr/local/share/JS-Slash-Runner/manifest.json
+
 RUN mkdir -p /app/config /app/data /app/backups /app/plugins /app/public/scripts/extensions/third-party
 
 COPY entrypoint.sh /usr/local/bin/st-entrypoint.sh
