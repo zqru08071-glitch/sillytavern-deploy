@@ -39,6 +39,7 @@ COPY entrypoint.sh /usr/local/bin/st-entrypoint.sh
 COPY seed-qr.json /usr/local/share/silverseed-qr.json
 COPY seed-settings.json /usr/local/share/silverseed-settings.json
 COPY seed-preset.json /usr/local/share/silverseed-preset.json
+COPY seed-theme.json /usr/local/share/silverseed-theme.json
 RUN chmod +x /usr/local/bin/st-entrypoint.sh
 
 ENV PORT=10000
