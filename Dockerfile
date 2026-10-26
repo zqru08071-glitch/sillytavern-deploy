@@ -53,6 +53,7 @@ RUN chmod +x /usr/local/bin/st-entrypoint.sh
 
 # 自绘的冥王星 App 图标（主屏幕 / PWA，登录页和主界面一起换）
 COPY icons/ /app/public/img/icons/
+COPY icons/favicon.ico /app/public/favicon.ico
 COPY manifest.json /app/public/manifest.json
 COPY fix-icons.js /usr/local/share/fix-icons.js
 RUN node /usr/local/share/fix-icons.js \
