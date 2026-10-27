@@ -57,6 +57,8 @@ COPY icons/favicon.ico /app/public/favicon.ico
 COPY manifest.json /app/public/manifest.json
 COPY fix-icons.js /usr/local/share/fix-icons.js
 COPY asset-version.mjs /usr/local/share/asset-version.mjs
+# 酒馆助手补丁：修「带 ?v= 指纹时扩展拿到的 chat 恒为空 → 前端美化永不渲染」
+COPY patch-tavernhelper.mjs /usr/local/share/patch-tavernhelper.mjs
 RUN node /usr/local/share/fix-icons.js \
  && grep -n app-icon /app/public/index.html /app/public/login.html
 

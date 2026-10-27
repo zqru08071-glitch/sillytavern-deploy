@@ -7,7 +7,10 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 const ROOT = process.argv[2] || '/app/public';
-const SKIP_DIRS = new Set(['extensions', 'node_modules', '.git', 'characters', 'chats', 'user']);
+// 内置扩展（expressions / regex / vectors…）的 index.js 会 import 核心模块，
+// 不给他们打指纹 → 核心模块会被第二次以「无版本号」URL 加载 → 两份实例 → 循环依赖 TDZ。
+// 只跳过第三方扩展（用户自己放的）和用户数据目录。
+const SKIP_DIRS = new Set(['third-party', 'node_modules', '.git', 'characters', 'chats', 'user', 'backups']);
 const V_RE = /\?v=[0-9a-f]{8,}/g;
 
 function walk(dir, out = []) {
@@ -34,7 +37,7 @@ const V = '?v=' + STAMP;
 // 2) 三类引用
 const RE_HTML = /(\b(?:src|href)=")(?!https?:|\/\/|data:|#|\/)([^"?#]+?\.(?:js|mjs|css|woff2?|png|ico|svg|json))(?:\?v=[0-9a-f]+)?(")/g;
 const RE_CSS  = /(@import\s+url\(\s*['"]?)(?!https?:|\/\/|data:)([^'")]+?\.css)(?:\?v=[0-9a-f]+)?(['"]?\s*\))/g;
-const RE_JS   = /(\bfrom\s*['"]|\bimport\s*['"]|\bimport\(\s*['"])(?!https?:|\/\/|data:)(\.{1,2}\/[^'"?]+?\.(?:js|mjs))(?:\?v=[0-9a-f]+)?(['"])/g;
+const RE_JS   = /(\bfrom\s*['\"]|\bimport\s*['\"]|\bimport\(\s*['\"])(?!https?:|\/\/|data:)((?:\.{1,2}\/|\/)[^'\"?]+?\.(?:js|mjs))(?:\?v=[0-9a-f]+)?(['\"])/g;
 
 let files = 0, refs = 0;
 for (const f of targets) {

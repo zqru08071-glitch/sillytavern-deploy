@@ -47,7 +47,7 @@ link_dir /app/data/third-party-extensions public/scripts/extensions/third-party
 link_dir /app/data/plugins plugins
 link_dir /app/data/backups backups
 # 免费实例无持久盘：每次启动把镜像里预置的「酒馆助手」补回 third-party
-if [ ! -d public/scripts/extensions/third-party/JS-Slash-Runner ] && [ -d /usr/local/share/JS-Slash-Runner ]; then
+if ! ls -d public/scripts/extensions/third-party/JS-Slash-Runner* >/dev/null 2>&1 && [ -d /usr/local/share/JS-Slash-Runner ]; then
   mkdir -p public/scripts/extensions/third-party
   cp -a /usr/local/share/JS-Slash-Runner public/scripts/extensions/third-party/JS-Slash-Runner
   echo "seeded JS-Slash-Runner extension"
@@ -340,6 +340,12 @@ fi
 # 静态资源指纹（幂等）：内容变了指纹才变，配合长缓存不会卡旧版
 if [ -f /usr/local/share/asset-version.mjs ]; then
   node /usr/local/share/asset-version.mjs /app/public || true
+fi
+
+# 必须排在 asset-version 之后：扩展里写入的 ?v= 要与 index.html 的指纹一致，
+# 否则酒馆助手会加载到第二份 script.js，chat 恒为空，前端美化（睡莲底部打包）永不渲染。
+if [ -f /usr/local/share/patch-tavernhelper.mjs ]; then
+  node /usr/local/share/patch-tavernhelper.mjs /app/public || echo "patch-tavernhelper failed (non-fatal)"
 fi
 
 echo "Starting SillyTavern on port ${PORT} (account login)"
