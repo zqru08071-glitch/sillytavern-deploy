@@ -1,0 +1,7 @@
+# 运行期数据（由服务写入，不入库；服务器上另有每日备份）
+data/_cache/
+data/access.log
+data/tavern/secrets.json
+data/tavern/settings.json.bak*
+*.bak-*
+*.orig-*
